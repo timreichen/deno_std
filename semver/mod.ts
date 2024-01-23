@@ -253,8 +253,8 @@
  *   parse,
  *   parseComparator,
  *   parseRange,
- *   gt,
- *   lt,
+ *   greaterThan,
+ *   lessThan,
  *   format
  * } from "https://deno.land/std@$STD_VERSION/semver/mod.ts";
  *
@@ -263,8 +263,8 @@
  *
  * const s0 = parse("1.2.3");
  * const s1 = parse("9.8.7");
- * gt(s0, s1); // false
- * lt(s0, s1); // true
+ * greaterThan(s0, s1); // false
+ * lessThan(s0, s1); // true
  *
  * format(semver) // "1.2.3"
  * ```
@@ -304,8 +304,6 @@ export * from "./range_max.ts";
 export * from "./range_min.ts";
 export * from "./sort.ts";
 export * from "./types.ts";
-export * from "./lte.ts";
-export * from "./lte.ts";
 
 export * from "./equals.ts";
 export * from "./not_equals.ts";
