@@ -1,8 +1,9 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 import type { Operator, SemVer } from "./types.ts";
-import { ANY, MAX, MIN } from "./constants.ts";
+import { MAX, MIN } from "./constants.ts";
 import { greaterThan } from "./greater_than.ts";
 import { increment } from "./increment.ts";
+import { isAny } from "./_constants.ts";
 
 /**
  * The minimum semantic version that could match this comparator
@@ -11,9 +12,7 @@ import { increment } from "./increment.ts";
  * @returns The minimum valid semantic version
  */
 export function comparatorMin(semver: SemVer, operator: Operator): SemVer {
-  if (semver === ANY) {
-    return MIN;
-  }
+  if (isAny(semver)) return MIN;
 
   switch (operator) {
     case ">":

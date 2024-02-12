@@ -9,6 +9,6 @@ import { format } from "./format.ts";
  * @returns A string representation of the comparator
  */
 export function comparatorFormat(comparator: Comparator): string {
-  const { semver, operator } = comparator;
-  return `${operator}${format(semver ?? comparator)}`;
+  const { operator } = comparator;
+  return `${operator}${format(comparator)}`;
 }

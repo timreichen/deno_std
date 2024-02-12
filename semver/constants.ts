@@ -65,17 +65,9 @@ export const ANY: SemVer = {
 /**
  * A comparator which will span all valid semantic versions
  */
-export const ALL: Comparator = {
-  operator: "",
-  ...ANY,
-  semver: ANY,
-};
+export const ALL: Comparator = { operator: "", ...ANY };
 
 /**
  * A comparator which will not span any semantic versions
  */
-export const NONE: Comparator = {
-  operator: "<",
-  ...MIN,
-  semver: MIN,
-};
+export const NONE: Comparator = { operator: "<", ...MIN };

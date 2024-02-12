@@ -45,5 +45,5 @@ export function parseComparator(comparator: string): Comparator {
     }
     : ANY;
 
-  return { operator, ...semver, semver };
+  return { operator, ...semver };
 }

@@ -10,13 +10,17 @@ Deno.test({
     const comparators: unknown[] = [
       {
         operator: ">=",
-        semver: { major: 0, minor: 0, patch: 0, prerelease: [], build: [] },
+        major: 0,
+        minor: 0,
+        patch: 0,
+        prerelease: [],
+        build: [],
         min: { major: 0, minor: 0, patch: 0, prerelease: [], build: [] },
         max: { major: 0, minor: 0, patch: 0, prerelease: [], build: [] },
       },
       {
         operator: "<",
-        semver: MIN,
+        ...MIN,
         min: INVALID,
         max: INVALID,
       },

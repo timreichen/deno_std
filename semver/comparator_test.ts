@@ -176,17 +176,13 @@ Deno.test("comparatorFormat() handles semver inheritance", function () {
 Deno.test("comparatorFormat() handles deprecated Comparator.semver property", function () {
   const c1 = parseComparator(">= v1.2.3");
   assertEquals(
-    comparatorFormat(
-      { operator: c1.operator, semver: c1.semver } as Comparator,
-    ),
+    comparatorFormat(c1),
     ">=1.2.3",
   );
   const c2 = parseComparator(">= v1.2.3-pre.1+b.2");
 
   assertEquals(
-    comparatorFormat(
-      { operator: c2.operator, semver: c2.semver } as Comparator,
-    ),
+    comparatorFormat(c2),
     ">=1.2.3-pre.1+b.2",
   );
 });

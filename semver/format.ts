@@ -1,5 +1,5 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
-import { ANY } from "./constants.ts";
+import { isAny } from "./_constants.ts";
 import type { SemVer } from "./types.ts";
 
 function formatNumber(value: number) {
@@ -23,9 +23,7 @@ function formatNumber(value: number) {
  * @returns The string representation of a semantic version.
  */
 export function format(semver: SemVer): string {
-  if (semver === ANY) {
-    return "*";
-  }
+  if (isAny(semver)) return "*";
 
   const major = formatNumber(semver.major);
   const minor = formatNumber(semver.minor);

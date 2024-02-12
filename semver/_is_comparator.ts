@@ -2,7 +2,6 @@
 import { isSemVer } from "./is_semver.ts";
 import { OPERATORS } from "./_constants.ts";
 import type { Comparator } from "./types.ts";
-import { ALL, NONE } from "./constants.ts";
 
 /**
  * Does a deep check on the value to see if it is a valid Comparator object.
@@ -19,10 +18,8 @@ export function isComparator(value: unknown): value is Comparator {
     value === null || value === undefined || Array.isArray(value) ||
     typeof value !== "object"
   ) return false;
-  if (value === NONE || value === ALL) return true;
-  const { operator, semver } = value as Comparator;
-  return (
-    OPERATORS.includes(operator) &&
-    isSemVer(semver)
-  );
+  const { operator } = value as Comparator;
+  console.log(OPERATORS.includes(operator), isSemVer(value), value);
+
+  return OPERATORS.includes(operator) && isSemVer(value);
 }

@@ -7,9 +7,7 @@ Deno.test({
   name: "isRange()",
   fn: async (t) => {
     let i = 0;
-    const ranges: unknown[] = [[
-      [ALL],
-    ]];
+    const ranges: unknown[] = [[[ALL]]];
     for (const r of ranges) {
       await t.step(`${(i++).toString().padStart(2, "0")}`, () => {
         const actual = isRange(r);

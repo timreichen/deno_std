@@ -1,7 +1,7 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
-import { ANY, INVALID } from "./constants.ts";
 import type { SemVer } from "./types.ts";
 import { isValidNumber, isValidString } from "./_shared.ts";
+import { isAny, isInvalid } from "./_constants.ts";
 
 /**
  * Checks to see if value is a valid SemVer object. It does a check
@@ -22,8 +22,7 @@ export function isSemVer(value: unknown): value is SemVer {
   if (value === null || value === undefined) return false;
   if (Array.isArray(value)) return false;
   if (typeof value !== "object") return false;
-  if (value === INVALID) return true;
-  if (value === ANY) return true;
+  if (isInvalid(value as SemVer) || isAny(value as SemVer)) return true;
 
   const {
     major,
