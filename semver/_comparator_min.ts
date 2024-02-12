@@ -3,7 +3,7 @@ import type { Operator, SemVer } from "./types.ts";
 import { MAX, MIN } from "./constants.ts";
 import { greaterThan } from "./greater_than.ts";
 import { increment } from "./increment.ts";
-import { isAny } from "./_constants.ts";
+import { isAny } from "./_shared.ts";
 
 /**
  * The minimum semantic version that could match this comparator

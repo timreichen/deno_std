@@ -1,7 +1,7 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 import type { Operator, SemVer } from "./types.ts";
 import { INVALID, MAX } from "./constants.ts";
-import { isAny } from "./_constants.ts";
+import { isAny } from "./_shared.ts";
 
 /**
  * The maximum version that could match this comparator.
