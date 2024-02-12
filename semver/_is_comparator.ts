@@ -19,7 +19,5 @@ export function isComparator(value: unknown): value is Comparator {
     typeof value !== "object"
   ) return false;
   const { operator } = value as Comparator;
-  console.log(OPERATORS.includes(operator), isSemVer(value), value);
-
   return OPERATORS.includes(operator) && isSemVer(value);
 }
