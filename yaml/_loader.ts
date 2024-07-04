@@ -36,7 +36,6 @@ import {
   VERTICAL_LINE,
 } from "./_chars.ts";
 import { YamlError } from "./_error.ts";
-import { Mark } from "./_mark.ts";
 import { DEFAULT_SCHEMA, type Schema, type TypeMap } from "./_schema.ts";
 import type { Type } from "./_type.ts";
 import * as common from "./_utils.ts";
@@ -131,13 +130,14 @@ class LoaderState {
     return this.peek();
   }
   #createError(message: string): YamlError {
-    const mark = new Mark(
-      this.input,
-      this.position,
-      this.line,
-      this.position - this.lineStart,
-    );
-    return new YamlError(message, mark);
+    return new YamlError(`${message} ${
+      stringifyMark({
+        buffer: this.input,
+        position: this.position,
+        line: this.line,
+        column: this.position - this.lineStart,
+      })
+    }`);
   }
 
   throwError(message: string): never {
@@ -148,6 +148,69 @@ class LoaderState {
     const error = this.#createError(message);
     this.onWarning?.(error);
   }
+}
+
+function getSnippet(mark: Mark, indent = 4, maxLength = 75): string | null {
+  if (!mark.buffer) return null;
+
+  let head = "";
+  let start = mark.position;
+
+  while (
+    start > 0 &&
+    !"\x00\r\n\x85\u2028\u2029".includes(mark.buffer.charAt(start - 1))
+  ) {
+    start -= 1;
+    if (mark.position - start > maxLength / 2 - 1) {
+      head = " ... ";
+      start += 5;
+      break;
+    }
+  }
+
+  let tail = "";
+  let end = mark.position;
+
+  while (
+    end < mark.buffer.length &&
+    !"\x00\r\n\x85\u2028\u2029".includes(mark.buffer.charAt(end))
+  ) {
+    end += 1;
+    if (end - mark.position > maxLength / 2 - 1) {
+      tail = " ... ";
+      end -= 5;
+      break;
+    }
+  }
+
+  const snippet = mark.buffer.slice(start, end);
+  return `${" ".repeat(indent)}${head}${snippet}${tail}\n${
+    " ".repeat(indent + mark.position - start + head.length)
+  }^`;
+}
+
+interface Mark {
+  buffer: string;
+  position: number;
+  line: number;
+  column: number;
+}
+
+function stringifyMark(mark: Mark, compact?: boolean) {
+  let snippet;
+  let where = "";
+
+  where += `at line ${mark.line + 1}, column ${mark.column + 1}`;
+
+  if (!compact) {
+    snippet = getSnippet(mark);
+
+    if (snippet) {
+      where += `:\n${snippet}`;
+    }
+  }
+
+  return where;
 }
 
 function _class(obj: unknown): string {

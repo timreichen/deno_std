@@ -3,18 +3,9 @@
 // Copyright 2011-2015 by Vitaly Puzrin. All rights reserved. MIT license.
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 
-import type { Mark } from "./_mark.ts";
-
 export class YamlError extends Error {
-  constructor(
-    message = "(unknown reason)",
-    protected mark: Mark | string = "",
-  ) {
-    super(`${message} ${mark}`);
+  constructor(message: string) {
+    super(message);
     this.name = this.constructor.name;
-  }
-
-  override toString(): string {
-    return `${this.name}: ${this.message} ${this.mark}`;
   }
 }
