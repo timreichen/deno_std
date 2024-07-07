@@ -14,11 +14,11 @@ import {
   MultilineBasicString,
   MultilineLiteralString,
   Pair,
+  ParseError,
   ParserFactory,
   Scanner,
   Symbols,
   Table,
-  TOMLParseError,
   Utils,
   Value,
 } from "./_parser.ts";
@@ -76,7 +76,7 @@ Deno.test({
     assertEquals(parse('"a\\n"'), "a\n");
     assertThrows(
       () => parse('"a\\0b\\?c"'),
-      TOMLParseError,
+      ParseError,
       "Invalid escape sequence: \\0",
     );
     assertThrows(() => parse(""));
@@ -121,7 +121,7 @@ Violets are\\tblue"""`),
     fox jumps over\\? \\
     the lazy dog\\0.\\
     """`),
-      TOMLParseError,
+      ParseError,
       "Invalid escape sequence: \\?",
     );
     assertThrows(
@@ -129,7 +129,7 @@ Violets are\\tblue"""`),
         parse(`"""
 Roses are red
 Violets are\\tblue`),
-      TOMLParseError,
+      ParseError,
       "not closed",
     );
   },
@@ -171,7 +171,7 @@ Violets are\\tblue'''`),
         parse(`'''
 Roses are red
 Violets are\\tblue`),
-      TOMLParseError,
+      ParseError,
       "not closed",
     );
   },
@@ -381,7 +381,7 @@ Deno.test({
       ]`),
       [1, 2],
     );
-    assertThrows(() => parse("[1, 2, 3"), TOMLParseError, "not closed");
+    assertThrows(() => parse("[1, 2, 3"), ParseError, "not closed");
   },
 });
 
@@ -540,17 +540,17 @@ Deno.test({
   fn() {
     assertThrows(
       () => parse("foo = 1\nbar ="),
-      TOMLParseError,
+      ParseError,
       "line 2, column 5",
     );
     assertThrows(
       () => parse("foo = 1\nbar = 'foo\nbaz=1"),
-      TOMLParseError,
+      ParseError,
       "line 2, column 10",
     );
     assertThrows(
       () => parse(""),
-      TOMLParseError,
+      ParseError,
       "line 1, column 0",
     );
     assertThrows(
@@ -558,7 +558,7 @@ Deno.test({
         ParserFactory((_s) => {
           throw "Custom parser";
         })(""),
-      TOMLParseError,
+      ParseError,
       "[non-error thrown]",
     );
   },
