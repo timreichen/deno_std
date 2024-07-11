@@ -36,7 +36,6 @@ import {
   VERTICAL_LINE,
 } from "./_chars.ts";
 import { YamlError } from "./_error.ts";
-import { Mark } from "./_mark.ts";
 import { DEFAULT_SCHEMA, type Schema, type TypeMap } from "./_schema.ts";
 import type { Type } from "./_type.ts";
 import { type ArrayObject, getObjectTypeString, isObject } from "./_utils.ts";
@@ -195,13 +194,12 @@ class LoaderState {
     return this.peek();
   }
   #createError(message: string): YamlError {
-    const mark = new Mark(
-      this.input,
-      this.position,
-      this.line,
-      this.position - this.lineStart,
-    );
-    return new YamlError(message, mark);
+    return new YamlError(message, {
+      buffer: this.input,
+      position: this.position,
+      line: this.line,
+      column: this.position - this.lineStart,
+    });
   }
 
   throwError(message: string): never {
