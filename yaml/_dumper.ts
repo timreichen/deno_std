@@ -161,7 +161,6 @@ export class DumperState {
   implicitTypes: Type[];
   explicitTypes: Type[];
   tag: string | null = null;
-  result = "";
   duplicates: unknown[] = [];
   usedDuplicates: Set<unknown> = new Set();
   styleMap: ArrayObject<StyleVariant>;
