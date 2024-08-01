@@ -555,9 +555,7 @@ export function parseArgs<
       const booleanArgs = Array.isArray(boolean) ? boolean : [boolean];
       for (const key of booleanArgs.filter(Boolean)) {
         booleanSet.add(key);
-        aliasMap.get(key)?.forEach((al) => {
-          booleanSet.add(al);
-        });
+        aliasMap.get(key)?.forEach((it) => booleanSet.add(it));
       }
     }
   }
@@ -566,7 +564,7 @@ export function parseArgs<
     const stringArgs = Array.isArray(string) ? string : [string];
     for (const key of stringArgs.filter(Boolean)) {
       stringSet.add(key);
-      aliasMap.get(key)?.forEach((al) => stringSet.add(al));
+      aliasMap.get(key)?.forEach((it) => stringSet.add(it));
     }
   }
 
@@ -574,7 +572,7 @@ export function parseArgs<
     const collectArgs = Array.isArray(collect) ? collect : [collect];
     for (const key of collectArgs.filter(Boolean)) {
       collectSet.add(key);
-      aliasMap.get(key)?.forEach((al) => collectSet.add(al));
+      aliasMap.get(key)?.forEach((it) => collectSet.add(it));
     }
   }
 
