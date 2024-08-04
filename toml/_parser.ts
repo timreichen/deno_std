@@ -44,8 +44,12 @@ export class Scanner {
    * Get current character
    * @param index - relative index from current position
    */
-  char(index = 0) {
-    return this.#source[this.#position + index] ?? "";
+  char(offset = 0) {
+    return this.#source[this.#position + offset] ?? "";
+  }
+
+  startsWith(searchString: string) {
+    return this.#source.startsWith(searchString, this.#position);
   }
 
   /**
@@ -60,14 +64,8 @@ export class Scanner {
   /**
    * Move position to next
    */
-  next(count?: number) {
-    if (typeof count === "number") {
-      for (let i = 0; i < count; i++) {
-        this.#position++;
-      }
-    } else {
-      this.#position++;
-    }
+  next(count = 1) {
+    this.#position += count;
   }
 
   /**
@@ -78,17 +76,17 @@ export class Scanner {
     options: { inline?: boolean; comment?: boolean } = { comment: true },
   ) {
     if (options.inline) {
-      while (this.#whitespace.test(this.char()) && !this.eof()) {
+      while (this.#whitespace.test(this.char()) && !this.isEof()) {
         this.next();
       }
     } else {
-      while (!this.eof()) {
+      while (!this.isEof()) {
         const char = this.char();
-        if (this.#whitespace.test(char) || this.isCurrentCharEOL()) {
+        if (this.#whitespace.test(char) || this.isEol()) {
           this.next();
         } else if (options.comment && this.char() === "#") {
           // entering comment
-          while (!this.isCurrentCharEOL() && !this.eof()) {
+          while (!this.isEol() && !this.isEof()) {
             this.next();
           }
         } else {
@@ -97,7 +95,7 @@ export class Scanner {
       }
     }
     // Invalid if current char is other kinds of whitespace
-    if (!this.isCurrentCharEOL() && /\s/.test(this.char())) {
+    if (!this.isEol() && /\s/.test(this.char())) {
       const escaped = "\\u" + this.char().charCodeAt(0).toString(16);
       throw new SyntaxError(`Contains invalid whitespaces: \`${escaped}\``);
     }
@@ -106,19 +104,19 @@ export class Scanner {
   /**
    * Position reached EOF or not
    */
-  eof() {
-    return this.position() >= this.#source.length;
+  isEof() {
+    return this.position >= this.#source.length;
   }
 
   /**
    * Get current position
    */
-  position() {
+  get position() {
     return this.#position;
   }
 
-  isCurrentCharEOL() {
-    return this.char() === "\n" || this.slice(0, 2) === "\r\n";
+  isEol() {
+    return this.char() === "\n" || this.startsWith("\r\n");
   }
 }
 
@@ -210,7 +208,7 @@ function join<T>(
     const first = parser(scanner);
     if (!first.ok) return failure();
     const out: T[] = [first.body];
-    while (!scanner.eof()) {
+    while (!scanner.isEof()) {
       if (!Separator(scanner).ok) break;
       const result = parser(scanner);
       if (!result.ok) {
@@ -267,7 +265,7 @@ function repeat<T>(
 ): ParserComponent<T[]> {
   return (scanner: Scanner) => {
     const body: T[] = [];
-    while (!scanner.eof()) {
+    while (!scanner.isEof()) {
       const result = parser(scanner);
       if (!result.ok) break;
       body.push(result.body);
@@ -384,7 +382,7 @@ export function basicString(scanner: Scanner): ParseResult<string> {
   if (scanner.char() !== '"') return failure();
   scanner.next();
   const acc = [];
-  while (scanner.char() !== '"' && !scanner.eof()) {
+  while (scanner.char() !== '"' && !scanner.isEof()) {
     if (scanner.char() === "\n") {
       throw new SyntaxError("Single-line string cannot contain EOL");
     }
@@ -396,7 +394,7 @@ export function basicString(scanner: Scanner): ParseResult<string> {
       scanner.next();
     }
   }
-  if (scanner.eof()) {
+  if (scanner.isEof()) {
     throw new SyntaxError(
       `Single-line string is not closed:\n${acc.join("")}`,
     );
@@ -410,14 +408,14 @@ export function literalString(scanner: Scanner): ParseResult<string> {
   if (scanner.char() !== "'") return failure();
   scanner.next();
   const acc: string[] = [];
-  while (scanner.char() !== "'" && !scanner.eof()) {
+  while (scanner.char() !== "'" && !scanner.isEof()) {
     if (scanner.char() === "\n") {
       throw new SyntaxError("Single-line string cannot contain EOL");
     }
     acc.push(scanner.char());
     scanner.next();
   }
-  if (scanner.eof()) {
+  if (scanner.isEof()) {
     throw new SyntaxError(
       `Single-line string is not closed:\n${acc.join("")}`,
     );
@@ -440,7 +438,7 @@ export function multilineBasicString(
     scanner.next(2);
   }
   const acc: string[] = [];
-  while (scanner.slice(0, 3) !== '"""' && !scanner.eof()) {
+  while (scanner.slice(0, 3) !== '"""' && !scanner.isEof()) {
     // line ending backslash
     if (scanner.slice(0, 2) === "\\\n") {
       scanner.next();
@@ -460,7 +458,7 @@ export function multilineBasicString(
     }
   }
 
-  if (scanner.eof()) {
+  if (scanner.isEof()) {
     throw new SyntaxError(
       `Multi-line string is not closed:\n${acc.join("")}`,
     );
@@ -488,11 +486,11 @@ export function multilineLiteralString(
     scanner.next(2);
   }
   const acc: string[] = [];
-  while (scanner.slice(0, 3) !== "'''" && !scanner.eof()) {
+  while (scanner.slice(0, 3) !== "'''" && !scanner.isEof()) {
     acc.push(scanner.char());
     scanner.next();
   }
-  if (scanner.eof()) {
+  if (scanner.isEof()) {
     throw new SyntaxError(
       `Multi-line string is not closed:\n${acc.join("")}`,
     );
@@ -537,7 +535,7 @@ export function integer(scanner: Scanner): ParseResult<number | string> {
   if (first2.length === 2 && /0(?:x|o|b)/i.test(first2)) {
     scanner.next(2);
     const acc = [first2];
-    while (/[0-9a-f_]/i.test(scanner.char()) && !scanner.eof()) {
+    while (/[0-9a-f_]/i.test(scanner.char()) && !scanner.isEof()) {
       acc.push(scanner.char());
       scanner.next();
     }
@@ -550,7 +548,7 @@ export function integer(scanner: Scanner): ParseResult<number | string> {
     acc.push(scanner.char());
     scanner.next();
   }
-  while (/[0-9_]/.test(scanner.char()) && !scanner.eof()) {
+  while (/[0-9_]/.test(scanner.char()) && !scanner.isEof()) {
     acc.push(scanner.char());
     scanner.next();
   }
@@ -581,7 +579,7 @@ export function float(scanner: Scanner): ParseResult<number> {
     acc.push(scanner.char());
     scanner.next();
   }
-  while (FLOAT_REGEXP.test(scanner.char()) && !scanner.eof()) {
+  while (FLOAT_REGEXP.test(scanner.char()) && !scanner.isEof()) {
     acc.push(scanner.char());
     scanner.next();
   }
@@ -603,7 +601,7 @@ export function dateTime(scanner: Scanner): ParseResult<Date> {
 
   const acc = [];
   // example: 1979-05-27T00:32:00Z
-  while (/[ 0-9TZ.:-]/.test(scanner.char()) && !scanner.eof()) {
+  while (/[ 0-9TZ.:-]/.test(scanner.char()) && !scanner.isEof()) {
     acc.push(scanner.char());
     scanner.next();
   }
@@ -629,7 +627,7 @@ export function localTime(scanner: Scanner): ParseResult<string> {
   acc.push(scanner.char());
   scanner.next();
 
-  while (/[0-9]/.test(scanner.char()) && !scanner.eof()) {
+  while (/[0-9]/.test(scanner.char()) && !scanner.isEof()) {
     acc.push(scanner.char());
     scanner.next();
   }
@@ -644,7 +642,7 @@ export function arrayValue(scanner: Scanner): ParseResult<unknown[]> {
   scanner.next();
 
   const array: unknown[] = [];
-  while (!scanner.eof()) {
+  while (!scanner.isEof()) {
     scanner.nextUntilChar();
     const result = value(scanner);
     if (!result.ok) break;
@@ -777,8 +775,8 @@ export function parserFactory<T>(parser: ParserComponent<T>) {
       err = e instanceof Error ? e : new Error("[non-error thrown]");
     }
 
-    if (err || !parsed || !parsed.ok || !scanner.eof()) {
-      const position = scanner.position();
+    if (err || !parsed || !parsed.ok || !scanner.isEof()) {
+      const position = scanner.position;
       const subStr = tomlString.slice(0, position);
       const lines = subStr.split("\n");
       const row = lines.length;

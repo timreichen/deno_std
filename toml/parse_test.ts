@@ -49,7 +49,7 @@ Deno.test({
     scanner.nextUntilChar();
     assertEquals(scanner.char(), "b");
     scanner.next();
-    assertEquals(scanner.eof(), true);
+    assertEquals(scanner.isEof(), true);
   },
 });
 
