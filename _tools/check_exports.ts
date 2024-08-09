@@ -56,7 +56,4 @@ for await (
   }
 }
 
-if (failed) {
-  // console.info(`Copyright header should be "${COPYRIGHT}"`);
-  Deno.exit(1);
-}
+if (failed) Deno.exit(1);
