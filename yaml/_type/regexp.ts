@@ -11,23 +11,17 @@ export const regexp: Type<"scalar", RegExp> = {
   tag: "tag:yaml.org,2002:js/regexp",
   kind: "scalar",
   resolve(data: string): boolean {
-    if ((data === null) || (!data.length)) {
-      return false;
-    }
+    if (typeof data !== "string" || !data.length) return false;
 
     const regexp = `${data}`;
     if (regexp.charAt(0) === "/") {
       // Ensure regex is properly terminated
-      if (!REGEXP.test(data)) {
-        return false;
-      }
       // Check no duplicate modifiers
-      const modifiers = [...(regexp.match(REGEXP)?.groups?.modifiers ?? "")];
-      if (new Set(modifiers).size < modifiers.length) {
-        return false;
-      }
+      const groups = regexp.match(REGEXP)?.groups as { modifiers: string };
+      if (!groups) return false;
+      const modifiers = groups.modifiers.split("");
+      if (new Set(modifiers).size < modifiers.length) return false;
     }
-
     return true;
   },
   construct(data: string) {
