@@ -322,33 +322,28 @@ export class LoaderState {
 
     this.tagMap.set(handle, prefix);
   }
-  captureSegment(start: number, end: number, checkJson: boolean) {
-    let result: string;
-    if (start < end) {
-      result = this.input.slice(start, end);
+  captureSegment(
+    start: number,
+    end: number,
+    checkJson: boolean,
+  ): string | null {
+    if (start >= end) return null;
+    const result = this.input.slice(start, end);
 
-      if (checkJson) {
-        for (
-          let position = 0;
-          position < result.length;
-          position++
-        ) {
-          const character = result.charCodeAt(position);
-          if (
-            !(character === 0x09 ||
-              (0x20 <= character && character <= 0x10ffff))
-          ) {
-            return this.throwError(
-              `Expected valid JSON character: received "${character}"`,
-            );
-          }
+    if (checkJson) {
+      for (let position = 0; position < result.length; position++) {
+        const char = result.charCodeAt(position);
+        if (!(char === 0x09 || (0x20 <= char && char <= 0x10ffff))) {
+          return this.throwError(
+            `Expected valid JSON character: received "${char}"`,
+          );
         }
-      } else if (PATTERN_NON_PRINTABLE.test(result)) {
-        return this.throwError("Stream contains non-printable characters");
       }
-
-      this.result += result;
+    } else if (PATTERN_NON_PRINTABLE.test(result)) {
+      return this.throwError("Stream contains non-printable characters");
     }
+
+    return result;
   }
   readBlockSequence(nodeIndent: number): boolean {
     let line: number;
@@ -672,7 +667,8 @@ export class LoaderState {
       }
 
       if (hasPendingContent) {
-        this.captureSegment(captureStart, captureEnd, false);
+        const segment = this.captureSegment(captureStart, captureEnd, false);
+        if (segment !== null) this.result += segment;
         this.writeFoldedLines(this.line - line);
         captureStart = captureEnd = this.position;
         hasPendingContent = false;
@@ -685,7 +681,8 @@ export class LoaderState {
       ch = this.next();
     }
 
-    this.captureSegment(captureStart, captureEnd, false);
+    const segment = this.captureSegment(captureStart, captureEnd, false);
+    if (segment !== null) this.result += segment;
 
     if (this.result) {
       return true;
@@ -713,7 +710,9 @@ export class LoaderState {
 
     while ((ch = this.peek()) !== 0) {
       if (ch === SINGLE_QUOTE) {
-        this.captureSegment(captureStart, this.position, true);
+        const segment = this.captureSegment(captureStart, this.position, true);
+        if (segment !== null) this.result += segment;
+
         ch = this.next();
 
         if (ch === SINGLE_QUOTE) {
@@ -724,7 +723,8 @@ export class LoaderState {
           return true;
         }
       } else if (isEOL(ch)) {
-        this.captureSegment(captureStart, captureEnd, true);
+        const segment = this.captureSegment(captureStart, captureEnd, true);
+        if (segment !== null) this.result += segment;
         this.writeFoldedLines(this.skipSeparationSpace(false, nodeIndent));
         captureStart = captureEnd = this.position;
       } else if (
@@ -759,12 +759,14 @@ export class LoaderState {
     let tmp: number;
     while ((ch = this.peek()) !== 0) {
       if (ch === DOUBLE_QUOTE) {
-        this.captureSegment(captureStart, this.position, true);
+        const segment = this.captureSegment(captureStart, this.position, true);
+        if (segment !== null) this.result += segment;
         this.position++;
         return true;
       }
       if (ch === BACKSLASH) {
-        this.captureSegment(captureStart, this.position, true);
+        const segment = this.captureSegment(captureStart, this.position, true);
+        if (segment !== null) this.result += segment;
         ch = this.next();
 
         if (isEOL(ch)) {
@@ -799,7 +801,8 @@ export class LoaderState {
 
         captureStart = captureEnd = this.position;
       } else if (isEOL(ch)) {
-        this.captureSegment(captureStart, captureEnd, true);
+        const segment = this.captureSegment(captureStart, captureEnd, true);
+        if (segment !== null) this.result += segment;
         this.writeFoldedLines(this.skipSeparationSpace(false, nodeIndent));
         captureStart = captureEnd = this.position;
       } else if (
@@ -1088,7 +1091,8 @@ export class LoaderState {
         ch = this.next();
       }
 
-      this.captureSegment(captureStart, this.position, false);
+      const segment = this.captureSegment(captureStart, this.position, false);
+      if (segment !== null) this.result += segment;
     }
 
     return true;
