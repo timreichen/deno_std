@@ -357,7 +357,7 @@ export class LoaderState {
     let line: number;
     let following: number;
     let detected = false;
-    let ch: number;
+
     const tag = this.tag;
     const anchor = this.anchor;
     const result: unknown[] = [];
@@ -366,7 +366,7 @@ export class LoaderState {
       this.anchorMap.set(this.anchor, result);
     }
 
-    ch = this.peek();
+    let ch = this.peek();
 
     while (!this.#isEof()) {
       if (ch !== MINUS) {
@@ -1115,13 +1115,12 @@ export class LoaderState {
     let valueNode = null;
     let atExplicitKey = false;
     let detected = false;
-    let ch: number;
 
     if (this.anchor !== null && typeof this.anchor !== "undefined") {
       this.anchorMap.set(this.anchor, result);
     }
 
-    ch = this.peek();
+    let ch = this.peek();
 
     while (!this.#isEof()) {
       following = this.peek(1);
@@ -1290,9 +1289,8 @@ export class LoaderState {
     let isNamed = false;
     let tagHandle = "";
     let tagName: string;
-    let ch: number;
 
-    ch = this.peek();
+    let ch = this.peek();
 
     if (ch !== EXCLAMATION) return false;
 
@@ -1610,7 +1608,6 @@ export class LoaderState {
     let directiveName: string;
     let directiveArgs: string[];
     let hasDirectives = false;
-    let ch: number;
 
     this.version = null;
     this.checkLineBreaks = false;
@@ -1620,7 +1617,7 @@ export class LoaderState {
     while (!this.#isEof()) {
       this.skipSeparationSpace(true, -1);
 
-      ch = this.peek();
+      let ch = this.peek();
 
       if (this.lineIndent > 0 || ch !== PERCENT) {
         break;
