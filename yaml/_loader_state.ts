@@ -354,7 +354,7 @@ export class LoaderState {
     let line: number;
     let following: number;
     let detected = false;
-    let ch: number;
+    let char: number;
     const tag = this.tag;
     const anchor = this.anchor;
     const result: unknown[] = [];
@@ -363,10 +363,10 @@ export class LoaderState {
       this.anchorMap.set(this.anchor, result);
     }
 
-    ch = this.peek();
+    char = this.peek();
 
-    while (ch !== 0) {
-      if (ch !== MINUS) {
+    while (char !== 0) {
+      if (char !== MINUS) {
         break;
       }
 
@@ -382,7 +382,7 @@ export class LoaderState {
       if (this.skipSeparationSpace(true, -1)) {
         if (this.lineIndent <= nodeIndent) {
           result.push(null);
-          ch = this.peek();
+          char = this.peek();
           continue;
         }
       }
@@ -392,9 +392,9 @@ export class LoaderState {
       result.push(this.result);
       this.skipSeparationSpace(true, -1);
 
-      ch = this.peek();
+      char = this.peek();
 
-      if ((this.line === line || this.lineIndent > nodeIndent) && ch !== 0) {
+      if ((this.line === line || this.lineIndent > nodeIndent) && char !== 0) {
         return this.throwError(
           "Cannot read block sequence: bad indentation of a sequence entry",
         );
@@ -509,11 +509,11 @@ export class LoaderState {
     return result;
   }
   readLineBreak() {
-    const ch = this.peek();
+    const char = this.peek();
 
-    if (ch === LINE_FEED) {
+    if (char === LINE_FEED) {
       this.position++;
-    } else if (ch === CARRIAGE_RETURN) {
+    } else if (char === CARRIAGE_RETURN) {
       this.position++;
       if (this.peek() === LINE_FEED) {
         this.position++;
@@ -527,28 +527,28 @@ export class LoaderState {
   }
   skipSeparationSpace(allowComments: boolean, checkIndent: number): number {
     let lineBreaks = 0;
-    let ch = this.peek();
+    let char = this.peek();
 
-    while (ch !== 0) {
-      while (isWhiteSpace(ch)) {
-        ch = this.next();
+    while (char !== 0) {
+      while (isWhiteSpace(char)) {
+        char = this.next();
       }
 
-      if (allowComments && ch === SHARP) {
+      if (allowComments && char === SHARP) {
         do {
-          ch = this.next();
-        } while (ch !== LINE_FEED && ch !== CARRIAGE_RETURN && ch !== 0);
+          char = this.next();
+        } while (char !== LINE_FEED && char !== CARRIAGE_RETURN && char !== 0);
       }
 
-      if (isEOL(ch)) {
+      if (isEOL(char)) {
         this.readLineBreak();
 
-        ch = this.peek();
+        char = this.peek();
         lineBreaks++;
         this.lineIndent = 0;
 
         this.readIndent();
-        ch = this.peek();
+        char = this.peek();
       } else {
         break;
       }
@@ -565,18 +565,18 @@ export class LoaderState {
     return lineBreaks;
   }
   testDocumentSeparator(): boolean {
-    let ch = this.peek();
+    let char = this.peek();
 
     // Condition this.position === this.lineStart is tested
     // in parent on each call, for efficiency. No needs to test here again.
     if (
-      (ch === MINUS || ch === DOT) &&
-      ch === this.peek(1) &&
-      ch === this.peek(2)
+      (char === MINUS || char === DOT) &&
+      char === this.peek(1) &&
+      char === this.peek(2)
     ) {
-      ch = this.peek(3);
+      char = this.peek(3);
 
-      if (ch === 0 || isWhiteSpaceOrEOL(ch)) {
+      if (char === 0 || isWhiteSpaceOrEOL(char)) {
         return true;
       }
     }
@@ -593,28 +593,28 @@ export class LoaderState {
   readPlainScalar(nodeIndent: number, withinFlowCollection: boolean): boolean {
     const kind = this.kind;
     const result = this.result;
-    let ch = this.peek();
+    let char = this.peek();
 
     if (
-      isWhiteSpaceOrEOL(ch) ||
-      isFlowIndicator(ch) ||
-      ch === SHARP ||
-      ch === AMPERSAND ||
-      ch === ASTERISK ||
-      ch === EXCLAMATION ||
-      ch === VERTICAL_LINE ||
-      ch === GREATER_THAN ||
-      ch === SINGLE_QUOTE ||
-      ch === DOUBLE_QUOTE ||
-      ch === PERCENT ||
-      ch === COMMERCIAL_AT ||
-      ch === GRAVE_ACCENT
+      isWhiteSpaceOrEOL(char) ||
+      isFlowIndicator(char) ||
+      char === SHARP ||
+      char === AMPERSAND ||
+      char === ASTERISK ||
+      char === EXCLAMATION ||
+      char === VERTICAL_LINE ||
+      char === GREATER_THAN ||
+      char === SINGLE_QUOTE ||
+      char === DOUBLE_QUOTE ||
+      char === PERCENT ||
+      char === COMMERCIAL_AT ||
+      char === GRAVE_ACCENT
     ) {
       return false;
     }
 
     let following: number;
-    if (ch === QUESTION || ch === MINUS) {
+    if (char === QUESTION || char === MINUS) {
       following = this.peek(1);
 
       if (
@@ -631,8 +631,8 @@ export class LoaderState {
     let captureStart = this.position;
     let hasPendingContent = false;
     let line = 0;
-    while (ch !== 0) {
-      if (ch === COLON) {
+    while (char !== 0) {
+      if (char === COLON) {
         following = this.peek(1);
 
         if (
@@ -641,7 +641,7 @@ export class LoaderState {
         ) {
           break;
         }
-      } else if (ch === SHARP) {
+      } else if (char === SHARP) {
         const preceding = this.peek(-1);
 
         if (isWhiteSpaceOrEOL(preceding)) {
@@ -649,10 +649,10 @@ export class LoaderState {
         }
       } else if (
         (this.position === this.lineStart && this.testDocumentSeparator()) ||
-        (withinFlowCollection && isFlowIndicator(ch))
+        (withinFlowCollection && isFlowIndicator(char))
       ) {
         break;
-      } else if (isEOL(ch)) {
+      } else if (isEOL(char)) {
         line = this.line;
         const lineStart = this.lineStart;
         const lineIndent = this.lineIndent;
@@ -660,7 +660,7 @@ export class LoaderState {
 
         if (this.lineIndent >= nodeIndent) {
           hasPendingContent = true;
-          ch = this.peek();
+          char = this.peek();
           continue;
         } else {
           this.position = captureEnd;
@@ -678,11 +678,11 @@ export class LoaderState {
         hasPendingContent = false;
       }
 
-      if (!isWhiteSpace(ch)) {
+      if (!isWhiteSpace(char)) {
         captureEnd = this.position + 1;
       }
 
-      ch = this.next();
+      char = this.next();
     }
 
     this.captureSegment(captureStart, captureEnd, false);
@@ -696,13 +696,13 @@ export class LoaderState {
     return false;
   }
   readSingleQuotedScalar(nodeIndent: number): boolean {
-    let ch;
+    let char;
     let captureStart;
     let captureEnd;
 
-    ch = this.peek();
+    char = this.peek();
 
-    if (ch !== SINGLE_QUOTE) {
+    if (char !== SINGLE_QUOTE) {
       return false;
     }
 
@@ -711,19 +711,19 @@ export class LoaderState {
     this.position++;
     captureStart = captureEnd = this.position;
 
-    while ((ch = this.peek()) !== 0) {
-      if (ch === SINGLE_QUOTE) {
+    while ((char = this.peek()) !== 0) {
+      if (char === SINGLE_QUOTE) {
         this.captureSegment(captureStart, this.position, true);
-        ch = this.next();
+        char = this.next();
 
-        if (ch === SINGLE_QUOTE) {
+        if (char === SINGLE_QUOTE) {
           captureStart = this.position;
           this.position++;
           captureEnd = this.position;
         } else {
           return true;
         }
-      } else if (isEOL(ch)) {
+      } else if (isEOL(char)) {
         this.captureSegment(captureStart, captureEnd, true);
         this.writeFoldedLines(this.skipSeparationSpace(false, nodeIndent));
         captureStart = captureEnd = this.position;
@@ -745,9 +745,9 @@ export class LoaderState {
     );
   }
   readDoubleQuotedScalar(nodeIndent: number): boolean {
-    let ch = this.peek();
+    let char = this.peek();
 
-    if (ch !== DOUBLE_QUOTE) {
+    if (char !== DOUBLE_QUOTE) {
       return false;
     }
 
@@ -757,29 +757,29 @@ export class LoaderState {
     let captureEnd = this.position;
     let captureStart = this.position;
     let tmp: number;
-    while ((ch = this.peek()) !== 0) {
-      if (ch === DOUBLE_QUOTE) {
+    while ((char = this.peek()) !== 0) {
+      if (char === DOUBLE_QUOTE) {
         this.captureSegment(captureStart, this.position, true);
         this.position++;
         return true;
       }
-      if (ch === BACKSLASH) {
+      if (char === BACKSLASH) {
         this.captureSegment(captureStart, this.position, true);
-        ch = this.next();
+        char = this.next();
 
-        if (isEOL(ch)) {
+        if (isEOL(char)) {
           this.skipSeparationSpace(false, nodeIndent);
-        } else if (ch < 256 && SIMPLE_ESCAPE_SEQUENCES.has(ch)) {
-          this.result += SIMPLE_ESCAPE_SEQUENCES.get(ch);
+        } else if (char < 256 && SIMPLE_ESCAPE_SEQUENCES.has(char)) {
+          this.result += SIMPLE_ESCAPE_SEQUENCES.get(char);
           this.position++;
-        } else if ((tmp = ESCAPED_HEX_LENGTHS.get(ch) ?? 0) > 0) {
+        } else if ((tmp = ESCAPED_HEX_LENGTHS.get(char) ?? 0) > 0) {
           let hexLength = tmp;
           let hexResult = 0;
 
           for (; hexLength > 0; hexLength--) {
-            ch = this.next();
+            char = this.next();
 
-            if ((tmp = hexCharCodeToNumber(ch)) >= 0) {
+            if ((tmp = hexCharCodeToNumber(char)) >= 0) {
               hexResult = (hexResult << 4) + tmp;
             } else {
               return this.throwError(
@@ -798,7 +798,7 @@ export class LoaderState {
         }
 
         captureStart = captureEnd = this.position;
-      } else if (isEOL(ch)) {
+      } else if (isEOL(char)) {
         this.captureSegment(captureStart, captureEnd, true);
         this.writeFoldedLines(this.skipSeparationSpace(false, nodeIndent));
         captureStart = captureEnd = this.position;
@@ -820,15 +820,15 @@ export class LoaderState {
     );
   }
   readFlowCollection(nodeIndent: number): boolean {
-    let ch = this.peek();
+    let char = this.peek();
     let terminator: number;
     let isMapping = true;
     let result = {};
-    if (ch === LEFT_SQUARE_BRACKET) {
+    if (char === LEFT_SQUARE_BRACKET) {
       terminator = RIGHT_SQUARE_BRACKET;
       isMapping = false;
       result = [];
-    } else if (ch === LEFT_CURLY_BRACKET) {
+    } else if (char === LEFT_CURLY_BRACKET) {
       terminator = RIGHT_CURLY_BRACKET;
     } else {
       return false;
@@ -838,7 +838,7 @@ export class LoaderState {
       this.anchorMap.set(this.anchor, result);
     }
 
-    ch = this.next();
+    char = this.next();
 
     const tag = this.tag;
     const anchor = this.anchor;
@@ -851,12 +851,12 @@ export class LoaderState {
     let following = 0;
     let line = 0;
     const overridableKeys = new Set<string>();
-    while (ch !== 0) {
+    while (char !== 0) {
       this.skipSeparationSpace(true, nodeIndent);
 
-      ch = this.peek();
+      char = this.peek();
 
-      if (ch === terminator) {
+      if (char === terminator) {
         this.position++;
         this.tag = tag;
         this.anchor = anchor;
@@ -873,7 +873,7 @@ export class LoaderState {
       keyTag = keyNode = valueNode = null;
       isPair = isExplicitPair = false;
 
-      if (ch === QUESTION) {
+      if (char === QUESTION) {
         following = this.peek(1);
 
         if (isWhiteSpaceOrEOL(following)) {
@@ -889,11 +889,11 @@ export class LoaderState {
       keyNode = this.result;
       this.skipSeparationSpace(true, nodeIndent);
 
-      ch = this.peek();
+      char = this.peek();
 
-      if ((isExplicitPair || this.line === line) && ch === COLON) {
+      if ((isExplicitPair || this.line === line) && char === COLON) {
         isPair = true;
-        ch = this.next();
+        char = this.next();
         this.skipSeparationSpace(true, nodeIndent);
         this.composeNode(nodeIndent, CONTEXT_FLOW_IN, false, true);
         valueNode = this.result;
@@ -923,11 +923,11 @@ export class LoaderState {
 
       this.skipSeparationSpace(true, nodeIndent);
 
-      ch = this.peek();
+      char = this.peek();
 
-      if (ch === COMMA) {
+      if (char === COMMA) {
         readNext = true;
-        ch = this.next();
+        char = this.next();
       } else {
         readNext = false;
       }
@@ -947,12 +947,12 @@ export class LoaderState {
     let emptyLines = 0;
     let atMoreIndented = false;
 
-    let ch = this.peek();
+    let char = this.peek();
 
     let folding = false;
-    if (ch === VERTICAL_LINE) {
+    if (char === VERTICAL_LINE) {
       folding = false;
-    } else if (ch === GREATER_THAN) {
+    } else if (char === GREATER_THAN) {
       folding = true;
     } else {
       return false;
@@ -962,18 +962,18 @@ export class LoaderState {
     this.result = "";
 
     let tmp = 0;
-    while (ch !== 0) {
-      ch = this.next();
+    while (char !== 0) {
+      char = this.next();
 
-      if (ch === PLUS || ch === MINUS) {
+      if (char === PLUS || char === MINUS) {
         if (CHOMPING_CLIP === chomping) {
-          chomping = ch === PLUS ? CHOMPING_KEEP : CHOMPING_STRIP;
+          chomping = char === PLUS ? CHOMPING_KEEP : CHOMPING_STRIP;
         } else {
           return this.throwError(
             "Cannot read block: chomping mode identifier repeated",
           );
         }
-      } else if ((tmp = decimalCharCodeToNumber(ch)) >= 0) {
+      } else if ((tmp = decimalCharCodeToNumber(char)) >= 0) {
         if (tmp === 0) {
           return this.throwError(
             "Cannot read block: indentation width must be greater than 0",
@@ -991,37 +991,37 @@ export class LoaderState {
       }
     }
 
-    if (isWhiteSpace(ch)) {
+    if (isWhiteSpace(char)) {
       do {
-        ch = this.next();
-      } while (isWhiteSpace(ch));
+        char = this.next();
+      } while (isWhiteSpace(char));
 
-      if (ch === SHARP) {
+      if (char === SHARP) {
         do {
-          ch = this.next();
-        } while (!isEOL(ch) && ch !== 0);
+          char = this.next();
+        } while (!isEOL(char) && char !== 0);
       }
     }
 
-    while (ch !== 0) {
+    while (char !== 0) {
       this.readLineBreak();
       this.lineIndent = 0;
 
-      ch = this.peek();
+      char = this.peek();
 
       while (
         (!detectedIndent || this.lineIndent < textIndent) &&
-        ch === SPACE
+        char === SPACE
       ) {
         this.lineIndent++;
-        ch = this.next();
+        char = this.next();
       }
 
       if (!detectedIndent && this.lineIndent > textIndent) {
         textIndent = this.lineIndent;
       }
 
-      if (isEOL(ch)) {
+      if (isEOL(char)) {
         emptyLines++;
         continue;
       }
@@ -1047,7 +1047,7 @@ export class LoaderState {
       // Folded style: use fancy rules to handle line breaks.
       if (folding) {
         // Lines starting with white space characters (more-indented lines) are not folded.
-        if (isWhiteSpace(ch)) {
+        if (isWhiteSpace(char)) {
           atMoreIndented = true;
           // except for the first content line (cf. Example 8.1)
           this.result += "\n".repeat(
@@ -1084,8 +1084,8 @@ export class LoaderState {
       emptyLines = 0;
       const captureStart = this.position;
 
-      while (!isEOL(ch) && ch !== 0) {
-        ch = this.next();
+      while (!isEOL(char) && char !== 0) {
+        char = this.next();
       }
 
       this.captureSegment(captureStart, this.position, false);
@@ -1107,15 +1107,15 @@ export class LoaderState {
     let valueNode = null;
     let atExplicitKey = false;
     let detected = false;
-    let ch: number;
+    let char: number;
 
     if (this.anchor !== null && typeof this.anchor !== "undefined") {
       this.anchorMap.set(this.anchor, result);
     }
 
-    ch = this.peek();
+    char = this.peek();
 
-    while (ch !== 0) {
+    while (char !== 0) {
       following = this.peek(1);
       line = this.line; // Save the current line.
       pos = this.position;
@@ -1124,8 +1124,10 @@ export class LoaderState {
       // Explicit notation case. There are two separate blocks:
       // first for the key (denoted by "?") and second for the value (denoted by ":")
       //
-      if ((ch === QUESTION || ch === COLON) && isWhiteSpaceOrEOL(following)) {
-        if (ch === QUESTION) {
+      if (
+        (char === QUESTION || char === COLON) && isWhiteSpaceOrEOL(following)
+      ) {
+        if (char === QUESTION) {
           if (atExplicitKey) {
             this.storeMappingPair(
               result,
@@ -1151,23 +1153,23 @@ export class LoaderState {
         }
 
         this.position += 1;
-        ch = following;
+        char = following;
 
         //
         // Implicit notation case. Flow-style node as the key first, then ":", and the value.
         //
       } else if (this.composeNode(flowIndent, CONTEXT_FLOW_OUT, false, true)) {
         if (this.line === line) {
-          ch = this.peek();
+          char = this.peek();
 
-          while (isWhiteSpace(ch)) {
-            ch = this.next();
+          while (isWhiteSpace(char)) {
+            char = this.next();
           }
 
-          if (ch === COLON) {
-            ch = this.next();
+          if (char === COLON) {
+            char = this.next();
 
-            if (!isWhiteSpaceOrEOL(ch)) {
+            if (!isWhiteSpaceOrEOL(char)) {
               return this.throwError(
                 "Cannot read block: a whitespace character is expected after the key-value separator within a block mapping",
               );
@@ -1239,10 +1241,10 @@ export class LoaderState {
         }
 
         this.skipSeparationSpace(true, -1);
-        ch = this.peek();
+        char = this.peek();
       }
 
-      if (this.lineIndent > nodeIndent && ch !== 0) {
+      if (this.lineIndent > nodeIndent && char !== 0) {
         return this.throwError(
           "Cannot read block: bad indentation of a mapping entry",
         );
@@ -1282,11 +1284,11 @@ export class LoaderState {
     let isNamed = false;
     let tagHandle = "";
     let tagName: string;
-    let ch: number;
+    let char: number;
 
-    ch = this.peek();
+    char = this.peek();
 
-    if (ch !== EXCLAMATION) return false;
+    if (char !== EXCLAMATION) return false;
 
     if (this.tag !== null) {
       return this.throwError(
@@ -1294,15 +1296,15 @@ export class LoaderState {
       );
     }
 
-    ch = this.next();
+    char = this.next();
 
-    if (ch === SMALLER_THAN) {
+    if (char === SMALLER_THAN) {
       isVerbatim = true;
-      ch = this.next();
-    } else if (ch === EXCLAMATION) {
+      char = this.next();
+    } else if (char === EXCLAMATION) {
       isNamed = true;
       tagHandle = "!!";
-      ch = this.next();
+      char = this.next();
     } else {
       tagHandle = "!";
     }
@@ -1311,20 +1313,20 @@ export class LoaderState {
 
     if (isVerbatim) {
       do {
-        ch = this.next();
-      } while (ch !== 0 && ch !== GREATER_THAN);
+        char = this.next();
+      } while (char !== 0 && char !== GREATER_THAN);
 
       if (this.position < this.length) {
         tagName = this.input.slice(position, this.position);
-        ch = this.next();
+        char = this.next();
       } else {
         return this.throwError(
           "Cannot read tag property: unexpected end of stream",
         );
       }
     } else {
-      while (ch !== 0 && !isWhiteSpaceOrEOL(ch)) {
-        if (ch === EXCLAMATION) {
+      while (char !== 0 && !isWhiteSpaceOrEOL(char)) {
+        if (char === EXCLAMATION) {
           if (!isNamed) {
             tagHandle = this.input.slice(position - 1, this.position + 1);
 
@@ -1343,7 +1345,7 @@ export class LoaderState {
           }
         }
 
-        ch = this.next();
+        char = this.next();
       }
 
       tagName = this.input.slice(position, this.position);
@@ -1378,19 +1380,19 @@ export class LoaderState {
     return true;
   }
   readAnchorProperty(): boolean {
-    let ch = this.peek();
-    if (ch !== AMPERSAND) return false;
+    let char = this.peek();
+    if (char !== AMPERSAND) return false;
 
     if (this.anchor !== null) {
       return this.throwError(
         "Cannot read anchor property: duplicate anchor property",
       );
     }
-    ch = this.next();
+    char = this.next();
 
     const position = this.position;
-    while (ch !== 0 && !isWhiteSpaceOrEOL(ch) && !isFlowIndicator(ch)) {
-      ch = this.next();
+    while (char !== 0 && !isWhiteSpaceOrEOL(char) && !isFlowIndicator(char)) {
+      char = this.next();
     }
 
     if (this.position === position) {
@@ -1405,12 +1407,12 @@ export class LoaderState {
   readAlias(): boolean {
     if (this.peek() !== ASTERISK) return false;
 
-    let ch = this.next();
+    let char = this.next();
 
     const position = this.position;
 
-    while (ch !== 0 && !isWhiteSpaceOrEOL(ch) && !isFlowIndicator(ch)) {
-      ch = this.next();
+    while (char !== 0 && !isWhiteSpaceOrEOL(char) && !isFlowIndicator(char)) {
+      char = this.next();
     }
 
     if (this.position === position) {
@@ -1602,28 +1604,28 @@ export class LoaderState {
     let directiveName: string;
     let directiveArgs: string[];
     let hasDirectives = false;
-    let ch: number;
+    let char: number;
 
     this.version = null;
     this.checkLineBreaks = false;
     this.tagMap = new Map();
     this.anchorMap = new Map();
 
-    while ((ch = this.peek()) !== 0) {
+    while ((char = this.peek()) !== 0) {
       this.skipSeparationSpace(true, -1);
 
-      ch = this.peek();
+      char = this.peek();
 
-      if (this.lineIndent > 0 || ch !== PERCENT) {
+      if (this.lineIndent > 0 || char !== PERCENT) {
         break;
       }
 
       hasDirectives = true;
-      ch = this.next();
+      char = this.next();
       position = this.position;
 
-      while (ch !== 0 && !isWhiteSpaceOrEOL(ch)) {
-        ch = this.next();
+      while (char !== 0 && !isWhiteSpaceOrEOL(char)) {
+        char = this.next();
       }
 
       directiveName = this.input.slice(position, this.position);
@@ -1635,30 +1637,30 @@ export class LoaderState {
         );
       }
 
-      while (ch !== 0) {
-        while (isWhiteSpace(ch)) {
-          ch = this.next();
+      while (char !== 0) {
+        while (isWhiteSpace(char)) {
+          char = this.next();
         }
 
-        if (ch === SHARP) {
+        if (char === SHARP) {
           do {
-            ch = this.next();
-          } while (ch !== 0 && !isEOL(ch));
+            char = this.next();
+          } while (char !== 0 && !isEOL(char));
           break;
         }
 
-        if (isEOL(ch)) break;
+        if (isEOL(char)) break;
 
         position = this.position;
 
-        while (ch !== 0 && !isWhiteSpaceOrEOL(ch)) {
-          ch = this.next();
+        while (char !== 0 && !isWhiteSpaceOrEOL(char)) {
+          char = this.next();
         }
 
         directiveArgs.push(this.input.slice(position, this.position));
       }
 
-      if (ch !== 0) this.readLineBreak();
+      if (char !== 0) this.readLineBreak();
 
       switch (directiveName) {
         case "YAML":
